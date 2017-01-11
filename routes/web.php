@@ -9,6 +9,8 @@ Route::get('API/', 'Text\TextController@index');
 Route::post('API/book', 'Text\TextController@getBook');
 Route::post('API/login', 'Text\TextController@getToken');
 Route::post('API/myBook', 'Text\TextController@getUserBook');
+Route::post('API/pageBefore', 'Text\TextController@beforePage');
+Route::post('API/pageJump', 'Text\TextController@jumpPage');
 Route::post('Admin/alogin', 'Admin\AdminController@login');
 Route::get('Admin/index', 'Admin\AdminController@aIndex');
 Route::get('Admin/manger', 'Admin\AdminController@bookIndex');
