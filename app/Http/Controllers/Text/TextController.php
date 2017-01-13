@@ -24,13 +24,9 @@ class TextController extends Controller
         }
     }
 
-    //设置读取
-    function getBook(Request $request)
+    //将读取全部变成统一方法,$status用于-1和1和0,当0时$page或者是具体的跳页数字
+    function bookCut(Request $request, $status, $page)
     {
-        //首先是测试
-//        $data = file_get_contents(public_path() . '/books/84_cross_street_charing.txt', NULL, NULL, 0, 1000);
-        //这里需要bookid,并且在每次请求的时候进行一次数据库的。
-        //本身以为这个地方是有页码的，但是发现这个方法还是不要实现跳页的好，要不会乱掉，所以暂时去掉单独写一个方法
         $bookId = $request->input('bookId');
         $token = $request->input('token');
         $user = $this->checkUser($token);
@@ -41,19 +37,46 @@ class TextController extends Controller
                 $books_my = DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->first();
                 if ($books_my) {
                     //已经存在的书签和标记,更新页码
-                    DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page + 1]);
-                    $page = $books_my->page;
+                    //-1时上一页
+                    if ($status == -1) {
+                        //已经存在的书签和标记,更新页码（减少一页）
+                        DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page - 1]);
+                        $page = $books_my->page - 1;
+                    } else if ($status == 1) {
+                        //+1时下一页
+                        DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page + 1]);
+                        $page = $books_my->page;
+                    } else if ($status == 0) {
+                        //直接跳转到该页
+                        //记录之前的page，用于回滚page
+                        $page_old = $books_my->page;
+                        //已经存在的书签和标记,更新页码（减少一页）
+                        DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $page]);
+                    }
                 } else {
-                    //建立新的书签和标记
+                    //建立新的书签和标记(未读的流程)
                     DB::table('bookmarks')->insert(['uid' => $user->id, 'bookid' => $bookId, 'page' => 1]);
                     $page = 0;
                 }
                 //读取TXT文件
                 $data = file_get_contents(public_path() . $book->src, NULL, NULL, $page * 1000, 1000);
                 if ($data == '') {
-                    //当已经读完此书时,回滚一页
-                    DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page]);
-                    return $this->formatData(0, "您已读完此书", null);
+                    if ($status == -1) {
+                        //上一页的操作
+                        //当已经达到第0页时，回滚一页
+                        DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page + 1]);
+                        return $this->formatData(0, "您已读完此书", null);
+                    } elseif ($status == 1) {
+                        //当下一页已经是
+                        //当已经读完此书时,回滚一页
+                        DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page]);
+                        return $this->formatData(0, "您已读完此书", null);
+                    } elseif ($status == 0) {
+                        //跳出不符合范围的
+                        //当已经读完此书时，或者跳到了一些奇怪的位置，回滚原来的页
+                        DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $page_old]);
+                        return $this->formatData(0, "您已经跳出页码范围", null);
+                    }
                 } else {
                     $data = mb_convert_encoding($data, 'utf-8');
                     return $this->formatData(1, null, $data);
@@ -66,82 +89,26 @@ class TextController extends Controller
         }
     }
 
-    //API跳页操作
-    public function jumpPage(Request $request)
+    //下一页
+    function nextPage(Request $request)
     {
-        //跳转书的上一页的接口
-        $bookId = $request->input('bookId');
-        $token = $request->input('token');
-        $user = $this->checkUser($token);
-        $page=$this->input('page');
-        if ($user) {
-            //读取数据库中的书本和其src
-            $book = DB::table('books')->where('id', $bookId)->first();
-            if ($book) {
-                $books_my = DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->first();
-                if ($books_my) {
-                    //记录之前的page，用于回滚page
-                    $page_old=$books_my->page;
-                    //已经存在的书签和标记,更新页码（减少一页）
-                    DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $page]);
-                } else {
-                    //不存在当前书签的情况下直接返回错误，因为不存在上一页
-                    return $this->formatData(0, "发生了不可预知的错误，请过段时间再试", null);
-                }
-                //读取TXT文件
-                $data = file_get_contents(public_path() . $book->src, NULL, NULL, $page * 1000, 1000);
-                if ($data == '') {
-                    //当已经读完此书时，或者跳到了一些奇怪的位置，回滚原来的页
-                    DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' =>$page_old]);
-                    return $this->formatData(0, "您已读完此书", null);
-                } else {
-                    $data = mb_convert_encoding($data, 'utf-8');
-                    return $this->formatData(1, null, $data);
-                }
-            } else {
-                return $this->formatData(0, "您需要看的书不存在", null);
-            }
-        } else {
-            return $this->formatData(0, "您的登录似乎存在问题，获取失败", null);
-        }
+        $data=$this->bookCut($request, 1, 0);
+        return $data;
     }
 
     //上一页
-    public function beforePage(Request $request)
+    function beforePage(Request $request)
     {
-        //跳转书的上一页的接口
-        $bookId = $request->input('bookId');
-        $token = $request->input('token');
-        $user = $this->checkUser($token);
-        if ($user) {
-            //读取数据库中的书本和其src
-            $book = DB::table('books')->where('id', $bookId)->first();
-            if ($book) {
-                $books_my = DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->first();
-                if ($books_my) {
-                    //已经存在的书签和标记,更新页码（减少一页）
-                    DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page - 1]);
-                    $page = $books_my->page - 1;
-                } else {
-                    //不存在当前书签的情况下直接返回错误，因为不存在上一页
-                    return $this->formatData(0, "发生了不可预知的错误，请过段时间再试", null);
-                }
-                //读取TXT文件
-                $data = file_get_contents(public_path() . $book->src, NULL, NULL, $page * 1000, 1000);
-                if ($data == '') {
-                    //当已经读完此书时,回滚一页（增加一页）
-                    DB::table('bookmarks')->where('uid', $user->id)->where('bookid', $bookId)->update(['page' => $books_my->page + 1]);
-                    return $this->formatData(0, "您已读完此书", null);
-                } else {
-                    $data = mb_convert_encoding($data, 'utf-8');
-                    return $this->formatData(1, null, $data);
-                }
-            } else {
-                return $this->formatData(0, "您需要看的书不存在", null);
-            }
-        } else {
-            return $this->formatData(0, "您的登录似乎存在问题，获取失败", null);
-        }
+        $data=$this->bookCut($request, -1, 0);
+        return $data;
+    }
+
+
+    //跳转页面
+    function otherPage(Request $request){
+        $page=$request->input('page');
+        $data=$this->bookCut($request,0,$page);
+        return $data;
     }
 
     //注册
