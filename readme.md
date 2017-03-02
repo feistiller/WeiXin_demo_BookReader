@@ -1,3 +1,6 @@
+包含客户端和服务器端的微信小程序demo，使用服务器端技术Laravel（PHP），客户端为微信小程序。
+
+### Server文件夹中为服务器端程序
 > 使用Laravel开发的简单DEMO，主要实现的txt小说文件的读取和API接口
 
 - 基本实现的功能
@@ -21,6 +24,8 @@
     {status:0,message:"ErrorMessage",data:""}
     {status:1,message:"",data:"ReturnData"}
     ```
-- 其他详细使用与示例：
-……
-等待写完再更新
+
+### WeiXin_client为客户端程序文件夹
+> 使用微信小程序开发的读取服务器端的客户端
+
+> 正在开发中。
