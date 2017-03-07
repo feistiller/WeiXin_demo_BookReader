@@ -6,6 +6,8 @@
  * */
 //API获取所有书的列表
 Route::get('API/', 'Text\TextController@index');
+//API用户注册
+Route::post('API/register', 'Text\TextController@register');
 //API获得用户Token用于之后的具体请求
 Route::post('API/login', 'Text\TextController@getToken');
 //API获得个人书签和最近阅读

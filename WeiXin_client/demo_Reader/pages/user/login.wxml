@@ -1,2 +1,16 @@
 <!--pages/user/login.wxml-->
-<text>pages/user/login.wxml</text>
+<view class="main">
+    <form bindsubmit="formSubmit" bindreset="formReset">
+        <view class="main_text">
+            <text class="login_word">LOGIN</text>
+            <input name="username" class="input" placeholder="用户名"/>
+            <input name="password" class="input" password placeholder="密码"/>
+            <view>
+                <button formType="submit" class="login_btn" size="mini">登录</button>
+            </view>
+            <view>
+                <button bindtap="re_Register" class="login_btn" size="mini">注册</button>
+            </view>
+        </view>        
+    </form>
+</view>

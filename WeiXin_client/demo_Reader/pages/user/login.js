@@ -1,19 +1,44 @@
 // pages/user/login.js
 Page({
-  data:{},
-  onLoad:function(options){
-    // 页面初始化 options为页面跳转所带来的参数
+  re_Register: function (e) {
+    wx.navigateTo({
+      url: './register',
+    })
   },
-  onReady:function(){
-    // 页面渲染完成
+  formSubmit: function (e) {
+    //当点击了submit按钮后发出新的请求
+    wx.request({
+      url: 'http://localhost:8000/API/login', //仅为示例，并非真实的接口地址
+      data: {
+        'username': e.detail.value.username,
+        'password': e.detail.value.password,
+      },
+      method: 'POST',
+      header: {
+        'content-type': 'application/x-www-form-urlencoded'
+      },
+      success: function (res) {
+        console.log(res.data)
+        if (res.data.status == 1) {
+          //存入缓存中
+          wx.setStorage({
+            key: "usertoken",
+            data: res.data.data.token
+          })
+          wx.showToast({
+            title: '登录成功',
+            icon: 'success',
+            duration: 2000
+          })
+        } else {
+          wx.showToast({
+            title: res.data.message,
+            icon: 'loading',
+            duration: 2000
+          })
+        }
+      }
+    })
   },
-  onShow:function(){
-    // 页面显示
-  },
-  onHide:function(){
-    // 页面隐藏
-  },
-  onUnload:function(){
-    // 页面关闭
-  }
+  data: {},
 })

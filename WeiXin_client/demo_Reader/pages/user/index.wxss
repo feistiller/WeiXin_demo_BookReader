@@ -1,1 +1,22 @@
 /* pages/user/index.wxss */
+.list{
+    height:230px;
+    width: 100%;
+    border-bottom: 1px solid #000;
+}
+.article_title{
+    padding: 10px;
+    font-size: 20px;
+}
+.article_username{
+    font-size: 13px;
+}
+.article_date{
+    padding: 10px;
+    font-size: 10px;
+    color: gray
+}
+.btn{
+    width: 50%;
+    font-size:15px;
+}

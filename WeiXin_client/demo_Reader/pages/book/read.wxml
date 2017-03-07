@@ -1,2 +1,6 @@
 <!--pages/book/read.wxml-->
-<text>pages/book/read.wxml</text>
+<text>{{items}}</text>
+<view>
+    <button class="btn" style='float:left' bindtap="beforePage">上一页</button>
+    <button class="btn" type="default" bindtap="nextPage">下一页</button>
+</view>

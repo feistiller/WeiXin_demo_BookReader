@@ -1,1 +1,24 @@
 /* pages/user/register.wxss */
+.main{
+    background: #99ffff;  
+    width: 100%;
+    height:598px;
+}
+.main_text{
+    padding-top: 80px;
+    padding-left: 40%;
+}
+.login_word{
+    color: #ffffff;
+    font-size: 30px;
+}
+.input{
+    background: #ffffff;
+    margin-left: -20%;
+    margin-top: 10%;
+    width: 80%;
+}
+.login_btn{
+    margin-top:10%; 
+    margin-left: 3%; 
+}

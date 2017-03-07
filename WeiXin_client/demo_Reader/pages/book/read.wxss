@@ -1,1 +1,5 @@
 /* pages/book/read.wxss */
+.btn{
+    width: 50%;
+    font-size:15px;
+}

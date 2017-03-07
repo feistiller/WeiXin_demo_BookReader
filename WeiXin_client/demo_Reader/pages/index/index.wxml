@@ -1,3 +1,12 @@
 <!--index.wxml-->
 <view class="container">
+  <view class="list" wx:for="{{items}}" wx:key="id">
+    <navigator url="../book/read?id={{item.id}}" hover-class="navigator-hover">
+      <text class="article_title">{{item.name}}</text>
+      <text class="article_username">作者：{{item.writer}}</text>
+      <view>
+        <text class="article_date">描述：{{item.description}}</text>
+      </view>
+    </navigator>
+  </view>
 </view>

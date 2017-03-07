@@ -117,14 +117,16 @@ class TextController extends Controller
         //email中的username
         $username = $request->get('username');
         $password = $request->get('password');
-        $nickname = $request->get('nickname');
-        if (DB::tables('users')->where('username', $username)->first()) {
+        $nickname = '默认';
+        if (DB::table('users')->where('username', $username)->first()) {
             return $this->formatData(0, "您似乎已经注册过了，请直接登录", null);
         } else {
             $data = array(
                 'username' => $username,
                 'password' => $password,
                 'nickname' => $nickname,
+                'time'=>time(),
+                'ip'=>'0.0.0.0'
             );
             if (DB::table('users')->insert($data)) {
                 return $this->formatData(1, null, null);
